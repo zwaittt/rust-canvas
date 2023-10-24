@@ -44,6 +44,15 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install dependencies
         run: pnpm i
+      - name: Setup Rust
+        # You may pin to the exact commit or the version.
+        # uses: ATiltedTree/setup-rust@749afc283f2b846eb90a670e757de9da4da091f7
+        uses: ATiltedTree/setup-rust@v1.0.5
+        with:
+          # The version to install
+          rust-version: stable
+      - name: install wasm-pack
+        run: cargo install wasm-pack
       - name: build dist
         run: make build-pages
       - name: Upload artifact
