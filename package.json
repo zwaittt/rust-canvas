@@ -5,6 +5,7 @@
 		"start": "webpack serve",
 		"build:pages": "webpack --config webpack.serve.js --mode=production"
 	},
+	"packageManager": "pnpm@8.4.0",
 	"devDependencies": {
 		"@wasm-tool/wasm-pack-plugin": "^1.7.0",
 		"html-webpack-plugin": "^5.5.3",
