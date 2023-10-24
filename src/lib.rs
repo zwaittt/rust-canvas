@@ -1,6 +1,8 @@
 use std::f64;
 use wasm_bindgen::prelude::*;
 use js_sys::Error;
+use image::{ImageBuffer, Rgb, Pixel};
+use imageproc::edges::canny;
 
 fn return_string_error(msg: &str) -> Result<String, JsValue> {
     Err(Error::new(msg).into())
@@ -56,4 +58,69 @@ pub fn draw_img_data(ctx: &web_sys::OffscreenCanvasRenderingContext2d, bitmap: &
   ctx.canvas().set_width(bitmap.width() as u32);
   ctx.canvas().set_height(bitmap.height() as u32);
   ctx.draw_image_with_image_bitmap(bitmap, 0.0, 0.0)
+}
+
+#[wasm_bindgen(js_name=drawImageEdge)]
+pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap) -> Result<js_sys::Promise, JsValue> {
+  let w = bitmap.width();
+  let h = bitmap.height();
+  let canvas = web_sys::OffscreenCanvas::new(w, h)?;
+  let ctx = canvas.get_context("2d")?
+    .unwrap()
+    .dyn_into::<web_sys::OffscreenCanvasRenderingContext2d>()?;
+
+  ctx.draw_image_with_image_bitmap(bitmap, 0.0, 0.0);
+
+  web_sys::console::log_3(&JsValue::from_str("draw_img_bitmap"), &w.into(), &h.into());
+
+  let mut img = ImageBuffer::new(w, h);
+  let image_data = ctx.get_image_data(0.0, 0.0, w as f64, h as f64)?;
+  let data = image_data.data();
+
+  for (x, y, pixel) in img.enumerate_pixels_mut() {
+    let r = data[(y * w + x) as usize * 4];
+    let g = data[(y * w + x) as usize * 4 + 1];
+    let b = data[(y * w + x) as usize * 4 + 2];
+    let pix = Rgb([r, g, b]);
+
+    *pixel = pix.to_luma();
+  }
+
+  web_sys::console::log_1(&JsValue::from_str("to grayscale"));
+
+  let edges_image: ImageBuffer<image::Luma<u8>, Vec<u8>> = canny(&img, 100.0, 200.0);
+
+  web_sys::console::log_1(&JsValue::from_str("done canny"));
+
+  let (width, height) = edges_image.dimensions();
+  
+  let mut output_data = vec![0u8; width as usize * height as usize * 4];
+    
+  let mut i: usize = 0;
+  let total = width as usize * height as usize;
+  // Iterate through total pixels
+  while i < total {
+    // Get the pixel value
+    let pixel = edges_image.get_pixel(i as u32 % width, i as u32 / width)[0];
+    // Set the pixel value
+    output_data[i * 4] = pixel;
+    output_data[i * 4 + 1] = pixel;
+    output_data[i * 4 + 2] = pixel;
+    output_data[i * 4 + 3] = 255;
+    i += 1;
+  }
+
+  web_sys::console::log_2(&data.len().into(), &output_data.len().into());
+
+  // draw edges_rgb to ctx
+  let edges_image_data = web_sys::ImageData::new_with_u8_clamped_array_and_sh(
+    unsafe { wasm_bindgen::Clamped(&mut output_data) },
+    width,
+    height,
+  )?;
+  web_sys::console::log_1(&JsValue::from_str("convert edge data done"));
+  let scope = js_sys::global().dyn_into::<web_sys::WorkerGlobalScope>().unwrap();
+  // edge img to bitma: web_sys::ImageDatap
+  let p:js_sys::Promise  = scope.create_image_bitmap_with_image_data(&edges_image_data)?;
+  Ok(p)
 }

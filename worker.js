@@ -1,5 +1,12 @@
 import * as wasm from "./pkg/rs_js.js";
-
+/**
+ * @type {OffscreenCanvas}
+ */
+let canvas;
+/**
+ * @type {OffscreenCanvasRenderingContext2D}
+ */
+let ctx;
 self.onmessage = async ({data: { type, data }}) => {
   switch(type) {
     case "INIT":
@@ -10,28 +17,44 @@ self.onmessage = async ({data: { type, data }}) => {
        * `new WebAssembly.Module()` and `new WebAssembly.Instance()`.
        */
       wasm.initSync(data);
+      self.postMessage({type: 'WASM_INIT_DONE'});
       break;
-    case "RUN":
-      const canvas = data;
-      const ctx = canvas.getContext('2d');
+    case "CANVAS":
+      canvas = data;
+      ctx = canvas.getContext('2d');
       if(!ctx) {
         postMessage({error: 'unsupported browser'});
         return;
       }
-      const imgBlob = await fetch('https://upload.wikimedia.org/wikipedia/commons/5/55/John_William_Waterhouse_A_Mermaid.jpg')
+      break;
+    case "DRAW_IMAGE":
+      const url = data;
+      const imgBlob = await fetch(url)
         .then(r => r.blob());
       const img = await createImageBitmap(imgBlob);
       wasm.drawImageData(ctx, img);
       break;
+    case "DRAW_EDGE":
+      if(!ctx) {
+        console.error('canvas not ready');
+        return;
+      }
+      /**
+       * @type {ImageBitmap}
+       */
+      const imgBitmap = data;
+      wasm.drawImageEdge(imgBitmap).then(_bitmap => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = imgBitmap.width;
+        canvas.height = imgBitmap.height;
+        ctx.drawImage(_bitmap, 0, 0);
+      }).catch(e => {
+        console.error(e);
+      })
     default:
       break;
   }
 
 };
 
-/**
- * Once the Web Worker was spawned we ask the main thread to fetch the bytes
- * for the WebAssembly module. Once fetched it will send the bytes back via
- * a `postMessage` (see above).
- */
-self.postMessage({ type: "FETCH_WASM" });
+self.postMessage('worker_created');
