@@ -2,6 +2,7 @@ const { merge } = require('webpack-merge');
 const config = require('./webpack.serve');
 const webpack = require('webpack');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const path = require('path');
 
 module.exports = merge(config, {
   plugins: [
