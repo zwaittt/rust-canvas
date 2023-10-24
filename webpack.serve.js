@@ -19,7 +19,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
-    publicPath: process.env.PUBLIC_PATH
+    publicPath: `${process.env.PUBLIC_PATH || ''}/`
   },
   plugins: [
     new HtmlWebpackPlugin({
