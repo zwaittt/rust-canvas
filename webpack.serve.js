@@ -1,7 +1,9 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-console.log(process.env.PUBLIC_PATH);
+const ASSET_PATH = path.join(process.env.PUBLIC_PATH || '', '/');
+console.log(ASSET_PATH);
 
 /**
  * @type { import("webpack").Configuration }
@@ -19,11 +21,14 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
-    publicPath: `${process.env.PUBLIC_PATH || ''}/`
+    publicPath: ASSET_PATH
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html'
+    }),
+    new webpack.DefinePlugin({
+      'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH),
     }),
   ],
   experiments: {

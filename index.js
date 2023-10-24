@@ -51,7 +51,7 @@ function initWorkerImpl() {
 }
 
 function initWasm() {
-  fetch("/rs_js_bg.wasm")
+  fetch(`${process.env.ASSET_PATH}rs_js_bg.wasm`)
       .then((response) => response.arrayBuffer())
       .then((bytes) => {
         worker.postMessage({ type: "INIT", data: bytes }, [bytes]);
@@ -69,7 +69,7 @@ function initInteractions() {
   
   btn2.addEventListener('click', e => {
     checkReady();
-    const imgUrl = '/2.png';
+    const imgUrl = `${process.env.ASSET_PATH}2.png`;
     const img = new Image();
     img.onload = () => {
       window.createImageBitmap(img).then(imgBitmap => {
