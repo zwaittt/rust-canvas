@@ -6,4 +6,4 @@ build-wasm-sync:
 build-pages: build-wasm-sync
 	rm -rf dist
 	pnpm run build:pages
-	cp -r public/ dist
+	cp -r public/* dist/
