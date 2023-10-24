@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const ASSET_PATH = path.join(process.env.PUBLIC_PATH || '', '/');
+const ASSET_PATH = `${process.env.PUBLIC_PATH || ''}/`;
 console.log(ASSET_PATH);
 
 /**
