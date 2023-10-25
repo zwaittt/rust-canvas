@@ -42,8 +42,9 @@ self.onmessage = async ({data: { type, data }}) => {
       /**
        * @type {ImageBitmap}
        */
-      const imgBitmap = data;
-      wasm.drawImageEdge(imgBitmap).then(_bitmap => {
+      const { bitmap: imgBitmap, low, high } = data;
+      console.log('low', low, 'high', high);
+      wasm.drawImageEdge(imgBitmap, low, high).then(_bitmap => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         canvas.width = imgBitmap.width;
         canvas.height = imgBitmap.height;
@@ -51,6 +52,9 @@ self.onmessage = async ({data: { type, data }}) => {
       }).catch(e => {
         console.error(e);
       })
+    case "RESET": 
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      break;
     default:
       break;
   }

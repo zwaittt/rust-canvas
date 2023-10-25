@@ -3,12 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Rust Canvas Playground</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+    }
+    body {
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+    button {
+      white-space: nowrap;
+    }
+    .left {
+      max-height: 600px;
+      display: flex;
+      flex-grow: 1;
+      justify-content: center;
+    }
+    .right {
+      display: flex;
+      flex-flow: column;
+      flex-basis: 320px;
+      flex-grow: 0;
+      gap: 1rem;
+    }
+    .left, .right {
+      margin-top: 2rem;
+    }
+    .left, .right > div {
+      border: 1px solid #e8e8e8;
+      box-shadow: rgba(0, 0, 0, 0.04) 0px 5.14286px 16px;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    #canvas {
+      max-height: inherit;
+    }
+    .container {
+      position: relative;
+      display: flex;
+      gap: 1rem;
+    }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      flex-flow: row;
+      flex-shrink: 1;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .container > .controls {
+      position: absolute;
+      top: 1rem;
+      left: 10rem;
+    }
+    .controls > input[type="range"] {
+      width: 100%;
+    }
+    .extra {
+      max-width: 100%;
+    }
+    .extra h4 {
+      margin: 0;
+      margin-bottom: 0.5rem;
+    }
+    #original{
+      max-width: inherit;
+    }
+  </style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <button id="btn_init_wasm">init wasm</button>
-  <button id="btn1">draw transfer</button>
-  <button id="btn2">draw edge</button>
+  <div class="container">
+    <div class='left'>
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="controls">
+      <button id="btn_init_wasm">init wasm</button>
+      <button id="btn1">draw transfer</button>
+      <button id="btn2">draw edge</button>
+    </div>
+    <div class='right'>
+      <div class='controls'>
+        <button id="btn_select_file">local file</button>
+        <button id="btn_reset">reset</button>
+        <button id="btn_redraw">redraw</button>
+        <input id="low_threshold" type="range" min="30" max="200" step="1"></input>
+        <label for="low_threshold">低</label>
+        <input id="high_threshold" type="range" min="30" max="200" step="1"></input>
+        <label for="high_threshold">高</label>
+      </div>
+      <div class="extra">
+        <h4>Original</h4>
+        <canvas id="original"></canvas>
+      </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

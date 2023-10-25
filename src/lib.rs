@@ -61,7 +61,7 @@ pub fn draw_img_data(ctx: &web_sys::OffscreenCanvasRenderingContext2d, bitmap: &
 }
 
 #[wasm_bindgen(js_name=drawImageEdge)]
-pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap) -> Result<js_sys::Promise, JsValue> {
+pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap, low_threshold: JsValue, high_threshold: JsValue) -> Result<js_sys::Promise, JsValue> {
   let w = bitmap.width();
   let h = bitmap.height();
   let canvas = web_sys::OffscreenCanvas::new(w, h)?;
@@ -88,7 +88,10 @@ pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap) -> Result<js_sys::Promise, J
 
   web_sys::console::log_1(&JsValue::from_str("to grayscale"));
 
-  let edges_image: ImageBuffer<image::Luma<u8>, Vec<u8>> = canny(&img, 100.0, 200.0);
+  let f32_val = low_threshold.as_f64().unwrap() as f32;
+  let f32_val_h = high_threshold.as_f64().unwrap() as f32;
+
+  let edges_image: ImageBuffer<image::Luma<u8>, Vec<u8>> = canny(&img, f32_val, f32_val_h);
 
   web_sys::console::log_1(&JsValue::from_str("done canny"));
 
@@ -114,7 +117,7 @@ pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap) -> Result<js_sys::Promise, J
 
   // draw edges_rgb to ctx
   let edges_image_data = web_sys::ImageData::new_with_u8_clamped_array_and_sh(
-    unsafe { wasm_bindgen::Clamped(&mut output_data) },
+    wasm_bindgen::Clamped(&mut output_data),
     width,
     height,
   )?;
