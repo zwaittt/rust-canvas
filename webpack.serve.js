@@ -25,7 +25,10 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './index.html'
+      template: './index.html',
+      templateParameters: {
+        ga: ASSET_PATH !== '/'
+      }
     }),
     new webpack.DefinePlugin({
       'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH),
