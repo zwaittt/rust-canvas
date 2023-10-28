@@ -8,6 +8,8 @@ const worker = new Worker(
  * @type { HTMLCanvasElement }
  */
 const canvas = document.querySelector('#canvas');
+const bridgeCanvas = document.querySelector('#bridge');
+const video = document.querySelector('#video');
 const btnInitWasm = document.getElementById("btn_init_wasm");
 const btn1 = document.getElementById("btn1");
 const btn2 = document.getElementById("btn2");
@@ -37,6 +39,8 @@ worker.addEventListener('message', e => {
     console.log('========== worker successfully initialized ==========');
     initWorkerImpl();
     initInteractions();
+
+    initCamera();
   }
 });
 
@@ -204,4 +208,52 @@ function loadFileAsUrl(e) {
     img.src = url;
   }
   reader.readAsDataURL(file);
+}
+
+function initCamera() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      const videoTrack = stream.getVideoTracks()[0];
+      const { width, height } = videoTrack.getSettings();
+      function onFrame() {
+        // const videoFrame = getVideoFrameData(video, width, height);
+        // worker.postMessage({
+        //   type: 'VIDEO_FRAME',
+        //   data: videoFrame,
+        // }, [videoFrame]);
+        getImgbitmapFromVideo(video, width, height).then(bitmap => {
+          worker.postMessage({
+            type: 'VIDEO_FRAME',
+            data: bitmap,
+          }, [bitmap]);
+        });
+        requestAnimationFrame(onFrame);
+      }
+
+      requestAnimationFrame(onFrame);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+
+/**
+ * @deprecated not transferable
+ */
+function getVideoFrameData(video, w, h) {
+  /**@type {CanvasRenderingContext2D} */
+  const ctx = bridgeCanvas.getContext('2d');
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+function getImgbitmapFromVideo(video, w, h) {
+  const ctx = bridgeCanvas.getContext('2d');
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return window.createImageBitmap(canvas);
 }

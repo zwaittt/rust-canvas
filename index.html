@@ -54,6 +54,12 @@
     #canvas {
       max-height: inherit;
     }
+    #bridge{
+      display: none;
+    }
+    #video {
+      display: none;
+    }
     .container {
       position: relative;
       display: flex;
@@ -91,6 +97,8 @@
 <body>
   <div class="container">
     <div class='left'>
+      <video id="video" autoplay></video>
+      <canvas id="bridge"></canvas>
       <canvas id="canvas"></canvas>
     </div>
     <div class="controls">
