@@ -8,7 +8,8 @@ const worker = new Worker(
  * @type { HTMLCanvasElement }
  */
 const canvas = document.querySelector('#canvas');
-const bridgeCanvas = document.querySelector('#bridge');
+// const bridgeCanvas = document.querySelector('#bridge');
+let bridgeCanvas;
 const video = document.querySelector('#video');
 const btnInitWasm = document.getElementById("btn_init_wasm");
 const btn1 = document.getElementById("btn1");
@@ -20,6 +21,10 @@ const btn5 = document.getElementById("btn_redraw");
 
 const range1 = document.getElementById("low_threshold");
 const range2 = document.getElementById("high_threshold");
+
+const btn6 = document.getElementById('btn_pause');
+
+let isPaused = false;
 
 let isReady = false;
 
@@ -157,6 +162,10 @@ function initInteractions() {
       } : task.data,
     }, task.transfer);
   });
+
+  btn6.addEventListener('click', e => {
+    isPaused = !isPaused;
+  });
 }
 
 function drawOriginalImage(img) {
@@ -216,18 +225,21 @@ function initCamera() {
       video.srcObject = stream;
       const videoTrack = stream.getVideoTracks()[0];
       const { width, height } = videoTrack.getSettings();
+      bridgeCanvas = new OffscreenCanvas(width, height);
       function onFrame() {
         // const videoFrame = getVideoFrameData(video, width, height);
         // worker.postMessage({
         //   type: 'VIDEO_FRAME',
         //   data: videoFrame,
         // }, [videoFrame]);
-        getImgbitmapFromVideo(video, width, height).then(bitmap => {
-          worker.postMessage({
-            type: 'VIDEO_FRAME',
-            data: bitmap,
-          }, [bitmap]);
-        });
+        if (!isPaused) {
+          getImgbitmapFromVideo(video, width, height).then(bitmap => {
+            worker.postMessage({
+              type: 'VIDEO_FRAME',
+              data: bitmap,
+            }, [bitmap]);
+          });
+        }
         requestAnimationFrame(onFrame);
       }
 
@@ -252,8 +264,8 @@ function getVideoFrameData(video, w, h) {
 
 function getImgbitmapFromVideo(video, w, h) {
   const ctx = bridgeCanvas.getContext('2d');
-  canvas.width = w;
-  canvas.height = h;
+  ctx.canvas.width = w;
+  ctx.canvas.height = h;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return window.createImageBitmap(canvas);
+  return window.createImageBitmap(ctx.canvas);
 }

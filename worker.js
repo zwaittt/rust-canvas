@@ -55,6 +55,19 @@ self.onmessage = async ({data: { type, data }}) => {
     case "RESET": 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       break;
+    case "VIDEO_FRAME":
+      
+      if(!ctx || !canvas) {
+        // postMessage({error: 'unsupported browser'});
+        return;
+      }
+      
+      const bitmap = data;
+      // ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      ctx.drawImage(bitmap, 0, 0);
+      break;
     default:
       break;
   }
