@@ -63,10 +63,13 @@ self.onmessage = async ({data: { type, data }}) => {
       }
       
       const bitmap = data;
-      // ctx.clearRect(0, 0, canvas.width, canvas.height);
       canvas.width = bitmap.width;
       canvas.height = bitmap.height;
-      ctx.drawImage(bitmap, 0, 0);
+
+      // 镜像翻转
+      const flipped = await wasm.flipImgBitmap(bitmap);
+      ctx.drawImage(flipped, 0, 0);
+      self.postMessage({type: 'FRAME_RENDERED'});
       break;
     default:
       break;

@@ -1,7 +1,7 @@
 use std::f64;
 use wasm_bindgen::prelude::*;
 use js_sys::Error;
-use image::{ImageBuffer, Rgb, Pixel};
+use image::{ImageBuffer, Rgb, Pixel, imageops::flip_horizontal};
 use imageproc::edges::canny;
 
 fn return_string_error(msg: &str) -> Result<String, JsValue> {
@@ -125,5 +125,52 @@ pub fn draw_img_edge(bitmap: &web_sys::ImageBitmap, low_threshold: JsValue, high
   let scope = js_sys::global().dyn_into::<web_sys::WorkerGlobalScope>().unwrap();
   // edge img to bitma: web_sys::ImageDatap
   let p:js_sys::Promise  = scope.create_image_bitmap_with_image_data(&edges_image_data)?;
+  Ok(p)
+}
+
+#[wasm_bindgen(js_name=flipImgBitmap)]
+pub fn flip(bitmap: &web_sys::ImageBitmap) -> Result<js_sys::Promise, JsValue> {
+  let w = bitmap.width();
+  let h = bitmap.height();
+  let canvas = web_sys::OffscreenCanvas::new(w, h)?;
+  let ctx = canvas.get_context("2d")?
+    .unwrap()
+    .dyn_into::<web_sys::OffscreenCanvasRenderingContext2d>()?;
+
+  ctx.draw_image_with_image_bitmap(bitmap, 0.0, 0.0);
+
+  let mut img = ImageBuffer::new(w, h);
+  let image_data = ctx.get_image_data(0.0, 0.0, w as f64, h as f64)?;
+  let data = image_data.data();
+
+  for (x, y, pixel) in img.enumerate_pixels_mut() {
+    let r = data[(y * w + x) as usize * 4];
+    let g = data[(y * w + x) as usize * 4 + 1];
+    let b = data[(y * w + x) as usize * 4 + 2];
+    let pix = Rgb([r, g, b]);
+
+    *pixel = pix;
+  }
+  let flipped = flip_horizontal(&img);
+  let (width, height) = flipped.dimensions();
+
+  let mut output_data = vec![0u8; width as usize * height as usize * 4];
+
+  for (i, p) in flipped.pixels().into_iter().enumerate() {
+    output_data[i * 4] = p.0[0];
+    output_data[i * 4 + 1] = p.0[1];
+    output_data[i * 4 + 2] = p.0[2];
+    output_data[i * 4 + 3] = 255;
+  }
+
+  let flipped_img_data = web_sys::ImageData::new_with_u8_clamped_array_and_sh(
+    wasm_bindgen::Clamped(&mut output_data),
+    width,
+    height,
+  )?;
+
+  let scope = js_sys::global().dyn_into::<web_sys::WorkerGlobalScope>().unwrap();
+  // edge img to bitma: web_sys::ImageDatap
+  let p:js_sys::Promise  = scope.create_image_bitmap_with_image_data(&flipped_img_data)?;
   Ok(p)
 }

@@ -24,6 +24,8 @@ const range2 = document.getElementById("high_threshold");
 
 const btn6 = document.getElementById('btn_pause');
 
+const stats = new Stats();
+
 let isPaused = false;
 
 let isReady = false;
@@ -65,7 +67,10 @@ function initWorkerImpl() {
       isReady = true;
       btnInitWasm.removeEventListener('click', initWasm);
       break;
-  
+
+      case 'FRAME_RENDERED':
+        stats.end();
+        break;
       default: {
         break;
       }
@@ -226,6 +231,9 @@ function initCamera() {
       const videoTrack = stream.getVideoTracks()[0];
       const { width, height } = videoTrack.getSettings();
       bridgeCanvas = new OffscreenCanvas(width, height);
+      stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      stats.dom.style.position = 'absolute';
+      document.body.querySelector('.left').appendChild(stats.dom);
       function onFrame() {
         // const videoFrame = getVideoFrameData(video, width, height);
         // worker.postMessage({
@@ -234,6 +242,7 @@ function initCamera() {
         // }, [videoFrame]);
         if (!isPaused) {
           getImgbitmapFromVideo(video, width, height).then(bitmap => {
+            stats.begin();
             worker.postMessage({
               type: 'VIDEO_FRAME',
               data: bitmap,
