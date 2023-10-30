@@ -52,7 +52,7 @@ self.onmessage = async ({data: { type, data }}) => {
       }).catch(e => {
         console.error(e);
       })
-    case "RESET": 
+    case "RESET":
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       break;
     case "VIDEO_FRAME":
@@ -62,12 +62,14 @@ self.onmessage = async ({data: { type, data }}) => {
         return;
       }
       
-      const bitmap = data;
+      const {bitmap, brightness} = data;
       canvas.width = bitmap.width;
       canvas.height = bitmap.height;
 
       // 镜像翻转
-      const flipped = await wasm.flipImgBitmap(bitmap);
+      const flipped = await wasm.flipImgBitmap(bitmap, {
+        brightness,
+      });
       ctx.drawImage(flipped, 0, 0);
       self.postMessage({type: 'FRAME_RENDERED'});
       break;

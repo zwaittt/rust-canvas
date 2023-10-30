@@ -11,6 +11,7 @@ console.log(ASSET_PATH);
 module.exports = {
   entry: './index.js',
   devServer: {
+    port: 8081,
     static: {
       directory: path.join(__dirname, 'public')
     },
