@@ -11,6 +11,7 @@ console.log(ASSET_PATH);
 module.exports = {
   entry: './index.js',
   devServer: {
+    port: 8081,
     static: {
       directory: path.join(__dirname, 'public')
     },
@@ -26,6 +27,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html',
+      inject: 'body',
       templateParameters: {
         ga: ASSET_PATH !== '/'
       }
